@@ -35,7 +35,9 @@ export async function POST(req: NextRequest) {
   "type": "expense",
   "items": [
     { "name": "商品名1", "price": 100 },
-    { "name": "商品名2", "price": 200 }
+    { "name": "商品名2", "price": 200 },
+    { "name": "小計", "price": 300 },
+    { "name": "消費税", "price": 30 }
   ]
 }
 
@@ -44,7 +46,7 @@ export async function POST(req: NextRequest) {
 - amountは合計金額（税込）。数値のみ、カンマなし
 - memoは店名 + 品目の概要などを簡潔に
 - typeは通常"expense"。入金・収入の場合のみ"income"
-- itemsはレシートに記載されている個別の品目と金額のリスト。見つからない場合は空配列 [] を返す。割引などはマイナスで記録。
+- itemsはレシートに記載されている個別の品目と金額のリスト。見つからない場合は空配列 [] を返す。割引などはマイナスで記録。レシートに「小計」「消費税（内税・外税）」の記載がある場合は、リストの末尾に必ず含めてください。
 - レシートが読み取れない場合は {"error": "読み取れません"} を返す`
                             },
                             {
