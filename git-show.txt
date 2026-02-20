@@ -1,8 +1,0 @@
-﻿commit 518a818f9ead94be5b86657f1bec13ef119aaf47
-Author: mucha-coder <mucha0214@gmail.com>
-Date:   Fri Feb 20 13:48:27 2026 +0900
-
-    fix: middleware.ts 縺ｮ cookiesToSet 蝙九お繝ｩ繝ｼ繧剃ｿｮ豁｣
-
- src/lib/supabase/middleware.ts | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
