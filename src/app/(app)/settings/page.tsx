@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Plus, X, Pencil, Trash2, CreditCard, Upload, FileText, Repeat, BarChart3, ChevronRight, PiggyBank, LogOut, User, BookOpen, Check } from 'lucide-react';
+import { Plus, X, Pencil, Trash2, CreditCard, Upload, FileText, Repeat, BarChart3, ChevronRight, PiggyBank, LogOut, User, BookOpen, Check, Sun, Moon, Monitor } from 'lucide-react';
 import type { PaymentMethodRecord, PaymentMethodType } from '@/lib/types';
 import { CARD_TEMPLATES, PAYMENT_TYPE_LABELS } from '@/lib/types';
 import { parseCSVText, mapPayPayCSV, mapGenericCSV, formatCurrency } from '@/lib/utils';
@@ -39,6 +39,9 @@ export default function SettingsPage() {
     const [paymentDay, setPaymentDay] = useState('');
     const [formError, setFormError] = useState('');
 
+    // Theme state
+    const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
+
     const fetchData = useCallback(async () => {
         setLoading(true);
         const [pmRes, userRes] = await Promise.all([
@@ -61,7 +64,21 @@ export default function SettingsPage() {
 
     useEffect(() => {
         fetchData();
-    }, [fetchData]);
+        // Load theme from localStorage
+        const storedTheme = localStorage.getItem('kakeibo-theme') as 'light' | 'dark' | 'system' | null;
+        if (storedTheme) {
+            setTheme(storedTheme);
+        }
+    }, [fetchData, supabase]);
+
+    function changeTheme(newTheme: 'light' | 'dark' | 'system') {
+        setTheme(newTheme);
+        localStorage.setItem('kakeibo-theme', newTheme);
+        const effectiveTheme = newTheme === 'system'
+            ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+            : newTheme;
+        document.documentElement.setAttribute('data-theme', effectiveTheme);
+    }
 
     async function handleSaveDisplayName() {
         setSavingName(true);
@@ -202,6 +219,76 @@ export default function SettingsPage() {
                         <div className="text-sm text-muted" style={{ marginBottom: '4px' }}>メールアドレス</div>
                         <span style={{ fontSize: '0.95rem' }}>{userEmail}</span>
                     </div>
+                </div>
+            </div>
+
+            {/* Theme Section */}
+            <div className="card" style={{ padding: '20px', marginBottom: '24px' }}>
+                <h3 style={{ marginBottom: '16px' }}><Sun size={18} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '6px' }} />テーマ</h3>
+                <div className="flex bg-input" style={{ borderRadius: '8px', padding: '4px' }}>
+                    <button
+                        className="flex-1"
+                        style={{
+                            padding: '8px 0',
+                            textAlign: 'center',
+                            borderRadius: '6px',
+                            background: theme === 'light' ? 'var(--bg-card)' : 'transparent',
+                            color: theme === 'light' ? 'var(--text-primary)' : 'var(--text-muted)',
+                            boxShadow: theme === 'light' ? 'var(--shadow-sm)' : 'none',
+                            border: 'none',
+                            fontWeight: theme === 'light' ? 600 : 400,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '6px'
+                        }}
+                        onClick={() => changeTheme('light')}
+                    >
+                        <Sun size={16} /> ライト
+                    </button>
+                    <button
+                        className="flex-1"
+                        style={{
+                            padding: '8px 0',
+                            textAlign: 'center',
+                            borderRadius: '6px',
+                            background: theme === 'dark' ? 'var(--bg-card)' : 'transparent',
+                            color: theme === 'dark' ? 'var(--text-primary)' : 'var(--text-muted)',
+                            boxShadow: theme === 'dark' ? 'var(--shadow-sm)' : 'none',
+                            border: 'none',
+                            fontWeight: theme === 'dark' ? 600 : 400,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '6px'
+                        }}
+                        onClick={() => changeTheme('dark')}
+                    >
+                        <Moon size={16} /> ダーク
+                    </button>
+                    <button
+                        className="flex-1"
+                        style={{
+                            padding: '8px 0',
+                            textAlign: 'center',
+                            borderRadius: '6px',
+                            background: theme === 'system' ? 'var(--bg-card)' : 'transparent',
+                            color: theme === 'system' ? 'var(--text-primary)' : 'var(--text-muted)',
+                            boxShadow: theme === 'system' ? 'var(--shadow-sm)' : 'none',
+                            border: 'none',
+                            fontWeight: theme === 'system' ? 600 : 400,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '6px'
+                        }}
+                        onClick={() => changeTheme('system')}
+                    >
+                        <Monitor size={16} /> システム
+                    </button>
                 </div>
             </div>
 

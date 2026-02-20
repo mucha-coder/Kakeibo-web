@@ -25,6 +25,18 @@ export default function RootLayout({
                 <meta name="apple-mobile-web-app-capable" content="yes" />
                 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
                 <meta name="apple-mobile-web-app-title" content="最強の家計簿" />
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `
+                            try {
+                                var localTheme = localStorage.getItem('kakeibo-theme');
+                                var theme = localTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                                document.documentElement.setAttribute('data-theme', theme);
+                                if (!localTheme) localStorage.setItem('kakeibo-theme', 'system');
+                            } catch (e) {}
+                        `,
+                    }}
+                />
             </head>
             <body>
                 {children}
