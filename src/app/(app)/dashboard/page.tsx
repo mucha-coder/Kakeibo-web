@@ -2,11 +2,12 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { formatCurrency, formatMonth, formatMonthJa, formatDateJa, getMonthStart, getMonthEnd, getPrevMonth, getNextMonth, calculateTotals, getUpcomingPayments } from '@/lib/utils';
+import { formatCurrency, formatMonth, formatMonthJa, formatDateJa, getMonthStart, getMonthEnd, getPrevMonth, getNextMonth, calculateTotals, getUpcomingPayments, CHART_COLORS } from '@/lib/utils';
 import type { UpcomingPayment } from '@/lib/utils';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
-import type { Transaction, Category, BudgetStatus, PaymentMethodRecord } from '@/lib/types';
+import type { Transaction, Category, BudgetStatus, PaymentMethodRecord, CategoryData } from '@/lib/types';
 import TransactionModal from '@/components/transactions/TransactionModal';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function DashboardPage() {
     const supabase = createClient();
@@ -16,6 +17,8 @@ export default function DashboardPage() {
     const [paymentMethods, setPaymentMethods] = useState<PaymentMethodRecord[]>([]);
     const [budgetStatuses, setBudgetStatuses] = useState<BudgetStatus[]>([]);
     const [upcomingPayments, setUpcomingPayments] = useState<UpcomingPayment[]>([]);
+    const [expenseCategoryData, setExpenseCategoryData] = useState<CategoryData[]>([]);
+    const [incomeCategoryData, setIncomeCategoryData] = useState<CategoryData[]>([]);
     const [showModal, setShowModal] = useState(false);
     const [loading, setLoading] = useState(true);
 
@@ -24,7 +27,7 @@ export default function DashboardPage() {
         const startDate = getMonthStart(currentMonth);
         const endDate = getMonthEnd(currentMonth);
 
-        const [txRes, catRes, budgetRes, pmRes] = await Promise.all([
+        const [txRes, allTxRes, catRes, budgetRes, pmRes] = await Promise.all([
             supabase
                 .from('transactions')
                 .select('*, category:categories(*), payment_method:payment_methods(*)')
@@ -32,6 +35,11 @@ export default function DashboardPage() {
                 .lte('date', endDate)
                 .order('date', { ascending: false })
                 .limit(10),
+            supabase
+                .from('transactions')
+                .select('*, category:categories(*)')
+                .gte('date', startDate)
+                .lte('date', endDate),
             supabase
                 .from('categories')
                 .select('*')
@@ -49,6 +57,44 @@ export default function DashboardPage() {
         setTransactions(txRes.data || []);
         setCategories(catRes.data || []);
         setPaymentMethods(pmRes.data || []);
+
+        // Category pie chart data
+        const allTxs: Transaction[] = allTxRes.data || [];
+        const cats: Category[] = catRes.data || [];
+
+        // Expense by category
+        const eTxs = allTxs.filter((t) => t.type === 'expense');
+        const totalExp = eTxs.reduce((s, t) => s + t.amount, 0);
+        const eByCat: Record<string, { name: string; icon: string; amount: number }> = {};
+        eTxs.forEach((t) => {
+            const cat = cats.find((c) => c.id === t.category_id);
+            const key = t.category_id || 'none';
+            if (!eByCat[key]) eByCat[key] = { name: cat?.name || '未分類', icon: cat?.icon || '📁', amount: 0 };
+            eByCat[key].amount += t.amount;
+        });
+        setExpenseCategoryData(
+            Object.values(eByCat).sort((a, b) => b.amount - a.amount).map((item, i) => ({
+                ...item, percentage: totalExp > 0 ? Math.round((item.amount / totalExp) * 100) : 0,
+                color: CHART_COLORS[i % CHART_COLORS.length],
+            }))
+        );
+
+        // Income by category
+        const iTxs = allTxs.filter((t) => t.type === 'income');
+        const totalInc = iTxs.reduce((s, t) => s + t.amount, 0);
+        const iByCat: Record<string, { name: string; icon: string; amount: number }> = {};
+        iTxs.forEach((t) => {
+            const cat = cats.find((c) => c.id === t.category_id);
+            const key = t.category_id || 'none';
+            if (!iByCat[key]) iByCat[key] = { name: cat?.name || '未分類', icon: cat?.icon || '📁', amount: 0 };
+            iByCat[key].amount += t.amount;
+        });
+        setIncomeCategoryData(
+            Object.values(iByCat).sort((a, b) => b.amount - a.amount).map((item, i) => ({
+                ...item, percentage: totalInc > 0 ? Math.round((item.amount / totalInc) * 100) : 0,
+                color: CHART_COLORS[i % CHART_COLORS.length],
+            }))
+        );
 
         // Calc budget statuses
         const expenseTxs = (txRes.data || []).filter((t: Transaction) => t.type === 'expense');
@@ -207,6 +253,70 @@ export default function DashboardPage() {
                                 </div>
                             ))}
                         </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Category Pie Charts */}
+            <div className="grid-2" style={{ marginTop: '16px' }}>
+                <div className="card">
+                    <div className="card-header">
+                        <h3>支出カテゴリ</h3>
+                    </div>
+                    {expenseCategoryData.length === 0 ? (
+                        <div className="empty-state"><p>データがありません</p></div>
+                    ) : (
+                        <>
+                            <ResponsiveContainer width="100%" height={220}>
+                                <PieChart>
+                                    <Pie data={expenseCategoryData} cx="50%" cy="50%" innerRadius={50} outerRadius={85} paddingAngle={3} dataKey="amount" nameKey="name">
+                                        {expenseCategoryData.map((e, i) => <Cell key={i} fill={e.color} />)}
+                                    </Pie>
+                                    <Tooltip contentStyle={{ background: 'var(--bg-modal)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }} formatter={(v: number) => formatCurrency(v)} />
+                                </PieChart>
+                            </ResponsiveContainer>
+                            <div className="flex flex-col gap-2 mt-2">
+                                {expenseCategoryData.map((cat, i) => (
+                                    <div key={i} className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <div style={{ width: 10, height: 10, borderRadius: 2, background: cat.color }} />
+                                            <span className="text-sm">{cat.icon} {cat.name}</span>
+                                        </div>
+                                        <span className="text-sm">{formatCurrency(cat.amount)} ({cat.percentage}%)</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </>
+                    )}
+                </div>
+                <div className="card">
+                    <div className="card-header">
+                        <h3>収入カテゴリ</h3>
+                    </div>
+                    {incomeCategoryData.length === 0 ? (
+                        <div className="empty-state"><p>データがありません</p></div>
+                    ) : (
+                        <>
+                            <ResponsiveContainer width="100%" height={220}>
+                                <PieChart>
+                                    <Pie data={incomeCategoryData} cx="50%" cy="50%" innerRadius={50} outerRadius={85} paddingAngle={3} dataKey="amount" nameKey="name">
+                                        {incomeCategoryData.map((e, i) => <Cell key={i} fill={e.color} />)}
+                                    </Pie>
+                                    <Tooltip contentStyle={{ background: 'var(--bg-modal)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }} formatter={(v: number) => formatCurrency(v)} />
+                                </PieChart>
+                            </ResponsiveContainer>
+                            <div className="flex flex-col gap-2 mt-2">
+                                {incomeCategoryData.map((cat, i) => (
+                                    <div key={i} className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <div style={{ width: 10, height: 10, borderRadius: 2, background: cat.color }} />
+                                            <span className="text-sm">{cat.icon} {cat.name}</span>
+                                        </div>
+                                        <span className="text-sm">{formatCurrency(cat.amount)} ({cat.percentage}%)</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </>
                     )}
                 </div>
             </div>
