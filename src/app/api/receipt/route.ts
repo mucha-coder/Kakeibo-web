@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
                     }],
                     generationConfig: {
                         temperature: 0.1,
-                        maxOutputTokens: 256,
+                        maxOutputTokens: 2048,
                     }
                 }),
             }
@@ -77,9 +77,12 @@ export async function POST(req: NextRequest) {
         const data = await response.json();
         const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
+        console.log('Gemini raw response text:', text);
+
         // Extract JSON from response (handle markdown code blocks)
         const jsonMatch = text.match(/\{[\s\S]*\}/);
         if (!jsonMatch) {
+            console.error('Failed to extract JSON. Raw text was:', text);
             return NextResponse.json({ error: 'レシートを読み取れませんでした' }, { status: 422 });
         }
 
