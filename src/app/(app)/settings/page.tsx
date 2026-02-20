@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Plus, X, Pencil, Trash2, CreditCard, Upload, FileText, Repeat, BarChart3, ChevronRight } from 'lucide-react';
+import { Plus, X, Pencil, Trash2, CreditCard, Upload, FileText, Repeat, BarChart3, ChevronRight, PiggyBank } from 'lucide-react';
 import type { PaymentMethodRecord, PaymentMethodType } from '@/lib/types';
 import { CARD_TEMPLATES, PAYMENT_TYPE_LABELS } from '@/lib/types';
 import { parseCSVText, mapPayPayCSV, mapGenericCSV, formatCurrency } from '@/lib/utils';
@@ -328,13 +328,13 @@ export default function SettingsPage() {
                             <ChevronRight size={18} className="text-muted" />
                         </div>
                     </Link>
-                    <Link href="/reports" className="card" style={{ padding: '14px 18px', textDecoration: 'none', color: 'inherit', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.03)' }}>
+                    <Link href="/budgets" className="card" style={{ padding: '14px 18px', textDecoration: 'none', color: 'inherit', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.03)' }}>
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <BarChart3 size={20} style={{ color: 'var(--primary-color)' }} />
+                                <PiggyBank size={20} style={{ color: 'var(--primary-color)' }} />
                                 <div>
-                                    <div style={{ fontWeight: 600 }}>レポート</div>
-                                    <div className="text-sm text-muted">月別・カテゴリ別・支払方法別分析</div>
+                                    <div style={{ fontWeight: 600 }}>予算</div>
+                                    <div className="text-sm text-muted">毎月の予算設定・予実管理</div>
                                 </div>
                             </div>
                             <ChevronRight size={18} className="text-muted" />
