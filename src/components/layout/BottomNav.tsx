@@ -6,7 +6,7 @@ import {
     LayoutDashboard,
     ArrowLeftRight,
     CalendarDays,
-    PiggyBank,
+    BarChart3,
     Settings,
 } from 'lucide-react';
 
@@ -14,7 +14,7 @@ const navItems = [
     { href: '/dashboard', label: 'ホーム', icon: LayoutDashboard },
     { href: '/transactions', label: '収支', icon: ArrowLeftRight },
     { href: '/calendar', label: 'カレンダー', icon: CalendarDays },
-    { href: '/budgets', label: '予算', icon: PiggyBank },
+    { href: '/reports', label: 'レポート', icon: BarChart3 },
     { href: '/settings', label: '設定', icon: Settings },
 ];
 
