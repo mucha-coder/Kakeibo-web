@@ -2,11 +2,12 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Plus, X, Pencil, Trash2, CreditCard, Upload, FileText } from 'lucide-react';
+import { Plus, X, Pencil, Trash2, CreditCard, Upload, FileText, Repeat, BarChart3, ChevronRight } from 'lucide-react';
 import type { PaymentMethodRecord, PaymentMethodType } from '@/lib/types';
 import { CARD_TEMPLATES, PAYMENT_TYPE_LABELS } from '@/lib/types';
 import { parseCSVText, mapPayPayCSV, mapGenericCSV, formatCurrency } from '@/lib/utils';
 import type { CSVImportRow } from '@/lib/utils';
+import Link from 'next/link';
 
 export default function SettingsPage() {
     const supabase = createClient();
@@ -309,6 +310,37 @@ export default function SettingsPage() {
                         {csvResult}
                     </div>
                 )}
+            </div>
+
+            {/* Quick Links */}
+            <div className="card mt-6" style={{ padding: '20px' }}>
+                <h3 style={{ marginBottom: '12px' }}>その他の機能</h3>
+                <div className="flex flex-col gap-2">
+                    <Link href="/recurring" className="card" style={{ padding: '14px 18px', textDecoration: 'none', color: 'inherit', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.03)' }}>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <Repeat size={20} style={{ color: 'var(--primary-color)' }} />
+                                <div>
+                                    <div style={{ fontWeight: 600 }}>繰り返し・固定費</div>
+                                    <div className="text-sm text-muted">固定費の登録・年間サマリー</div>
+                                </div>
+                            </div>
+                            <ChevronRight size={18} className="text-muted" />
+                        </div>
+                    </Link>
+                    <Link href="/reports" className="card" style={{ padding: '14px 18px', textDecoration: 'none', color: 'inherit', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.03)' }}>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <BarChart3 size={20} style={{ color: 'var(--primary-color)' }} />
+                                <div>
+                                    <div style={{ fontWeight: 600 }}>レポート</div>
+                                    <div className="text-sm text-muted">月別・カテゴリ別・支払方法別分析</div>
+                                </div>
+                            </div>
+                            <ChevronRight size={18} className="text-muted" />
+                        </div>
+                    </Link>
+                </div>
             </div>
 
             {/* Add/Edit Form Modal */}
