@@ -27,19 +27,13 @@ export default function DashboardPage() {
         const startDate = getMonthStart(currentMonth);
         const endDate = getMonthEnd(currentMonth);
 
-        const [txRes, allTxRes, catRes, budgetRes, pmRes] = await Promise.all([
+        const [allTxRes, catRes, budgetRes, pmRes] = await Promise.all([
             supabase
                 .from('transactions')
                 .select('*, category:categories(*), payment_method:payment_methods(*)')
                 .gte('date', startDate)
                 .lte('date', endDate)
-                .order('date', { ascending: false })
-                .limit(10),
-            supabase
-                .from('transactions')
-                .select('*, category:categories(*)')
-                .gte('date', startDate)
-                .lte('date', endDate),
+                .order('date', { ascending: false }),
             supabase
                 .from('categories')
                 .select('*')
@@ -54,13 +48,12 @@ export default function DashboardPage() {
                 .order('sort_order', { ascending: true }),
         ]);
 
-        setTransactions(txRes.data || []);
-        setCategories(catRes.data || []);
-        setPaymentMethods(pmRes.data || []);
-
-        // Category pie chart data
         const allTxs: Transaction[] = allTxRes.data || [];
         const cats: Category[] = catRes.data || [];
+
+        setTransactions(allTxs.slice(0, 10));
+        setCategories(cats);
+        setPaymentMethods(pmRes.data || []);
 
         // Expense by category
         const eTxs = allTxs.filter((t) => t.type === 'expense');
@@ -97,9 +90,8 @@ export default function DashboardPage() {
         );
 
         // Calc budget statuses
-        const expenseTxs = (txRes.data || []).filter((t: Transaction) => t.type === 'expense');
         const statuses: BudgetStatus[] = (budgetRes.data || []).map((b: { category: Category; amount: number }) => {
-            const spent = expenseTxs
+            const spent = eTxs
                 .filter((t: Transaction) => t.category_id === b.category.id)
                 .reduce((sum: number, t: Transaction) => sum + t.amount, 0);
             return {
@@ -112,7 +104,9 @@ export default function DashboardPage() {
         });
         setBudgetStatuses(statuses);
 
-        // Upcoming payments - fetch wider range for billing periods
+        setLoading(false);
+
+        // Upcoming payments — deferred (non-blocking)
         const allPms: PaymentMethodRecord[] = pmRes.data || [];
         const billingStart = getMonthStart(getPrevMonth(currentMonth));
         const billingEnd = getMonthEnd(getNextMonth(currentMonth));
@@ -121,10 +115,7 @@ export default function DashboardPage() {
             .select('payment_method_id, type, amount, date')
             .gte('date', billingStart)
             .lte('date', billingEnd);
-        const upcoming = getUpcomingPayments(allPms, allTxData || []);
-        setUpcomingPayments(upcoming);
-
-        setLoading(false);
+        setUpcomingPayments(getUpcomingPayments(allPms, allTxData || []));
     }, [currentMonth, supabase]);
 
     useEffect(() => {
