@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Plus, X, Pencil, Trash2, CreditCard, Upload, FileText, Repeat, BarChart3, ChevronRight, PiggyBank, LogOut } from 'lucide-react';
+import { Plus, X, Pencil, Trash2, CreditCard, Upload, FileText, Repeat, BarChart3, ChevronRight, PiggyBank, LogOut, User, BookOpen, Check } from 'lucide-react';
 import type { PaymentMethodRecord, PaymentMethodType } from '@/lib/types';
 import { CARD_TEMPLATES, PAYMENT_TYPE_LABELS } from '@/lib/types';
 import { parseCSVText, mapPayPayCSV, mapGenericCSV, formatCurrency } from '@/lib/utils';
@@ -17,6 +17,13 @@ export default function SettingsPage() {
     const [showForm, setShowForm] = useState(false);
     const [editItem, setEditItem] = useState<PaymentMethodRecord | null>(null);
     const [showTemplates, setShowTemplates] = useState(false);
+
+    // Account state
+    const [userEmail, setUserEmail] = useState('');
+    const [displayName, setDisplayName] = useState('');
+    const [editingName, setEditingName] = useState(false);
+    const [newDisplayName, setNewDisplayName] = useState('');
+    const [savingName, setSavingName] = useState(false);
 
     // CSV Import state
     const [csvFormat, setCsvFormat] = useState<'paypay' | 'generic'>('paypay');
@@ -34,17 +41,38 @@ export default function SettingsPage() {
 
     const fetchData = useCallback(async () => {
         setLoading(true);
-        const { data } = await supabase
-            .from('payment_methods')
-            .select('*')
-            .order('sort_order', { ascending: true });
-        setPaymentMethods(data || []);
+        const [pmRes, userRes] = await Promise.all([
+            supabase.from('payment_methods').select('*').order('sort_order', { ascending: true }),
+            supabase.auth.getUser(),
+        ]);
+        setPaymentMethods(pmRes.data || []);
+        const user = userRes.data.user;
+        if (user) {
+            setUserEmail(user.email || '');
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('display_name')
+                .eq('id', user.id)
+                .single();
+            setDisplayName(profile?.display_name || user.email?.split('@')[0] || '');
+        }
         setLoading(false);
     }, [supabase]);
 
     useEffect(() => {
         fetchData();
     }, [fetchData]);
+
+    async function handleSaveDisplayName() {
+        setSavingName(true);
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && newDisplayName.trim()) {
+            await supabase.from('profiles').update({ display_name: newDisplayName.trim() }).eq('id', user.id);
+            setDisplayName(newDisplayName.trim());
+        }
+        setEditingName(false);
+        setSavingName(false);
+    }
 
     function resetForm() {
         setName('');
@@ -132,13 +160,55 @@ export default function SettingsPage() {
                 <h1>💰 家計簿</h1>
             </div>
 
-            <div className="page-header flex items-center justify-between">
-                <div>
-                    <h2>設定</h2>
-                    <p>支払方法の管理</p>
+            <div className="page-header">
+                <h2>設定</h2>
+                <p>アカウント・支払方法の管理</p>
+            </div>
+
+            {/* Account Section */}
+            <div className="card" style={{ padding: '20px', marginBottom: '24px' }}>
+                <h3 style={{ marginBottom: '16px' }}><User size={18} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '6px' }} />アカウント</h3>
+                <div className="flex flex-col gap-3">
+                    <div>
+                        <div className="text-sm text-muted" style={{ marginBottom: '4px' }}>表示名</div>
+                        {editingName ? (
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="text"
+                                    className="form-input"
+                                    value={newDisplayName}
+                                    onChange={(e) => setNewDisplayName(e.target.value)}
+                                    placeholder="名前を入力"
+                                    style={{ flex: 1 }}
+                                    autoFocus
+                                />
+                                <button className="btn btn-primary btn-sm" onClick={handleSaveDisplayName} disabled={savingName}>
+                                    <Check size={14} /> 保存
+                                </button>
+                                <button className="btn btn-secondary btn-sm" onClick={() => setEditingName(false)}>
+                                    キャンセル
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="flex items-center justify-between">
+                                <span style={{ fontWeight: 600, fontSize: '1.05rem' }}>{displayName}</span>
+                                <button className="btn btn-ghost btn-sm" onClick={() => { setNewDisplayName(displayName); setEditingName(true); }}>
+                                    <Pencil size={14} /> 編集
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                    <div>
+                        <div className="text-sm text-muted" style={{ marginBottom: '4px' }}>メールアドレス</div>
+                        <span style={{ fontSize: '0.95rem' }}>{userEmail}</span>
+                    </div>
                 </div>
+            </div>
+
+            <div className="flex items-center justify-between" style={{ marginBottom: '16px' }}>
+                <h3>支払方法</h3>
                 <button
-                    className="btn btn-primary"
+                    className="btn btn-primary btn-sm"
                     onClick={() => { resetForm(); setShowForm(true); }}
                 >
                     <Plus size={18} /> 追加
@@ -336,6 +406,18 @@ export default function SettingsPage() {
                                 <div>
                                     <div style={{ fontWeight: 600 }}>予算</div>
                                     <div className="text-sm text-muted">毎月の予算設定・予実管理</div>
+                                </div>
+                            </div>
+                            <ChevronRight size={18} className="text-muted" />
+                        </div>
+                    </Link>
+                    <Link href="/guide" className="card" style={{ padding: '14px 18px', textDecoration: 'none', color: 'inherit', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.03)' }}>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <BookOpen size={20} style={{ color: 'var(--primary-color)' }} />
+                                <div>
+                                    <div style={{ fontWeight: 600 }}>使い方ガイド</div>
+                                    <div className="text-sm text-muted">初めての方へ・機能紹介</div>
                                 </div>
                             </div>
                             <ChevronRight size={18} className="text-muted" />
