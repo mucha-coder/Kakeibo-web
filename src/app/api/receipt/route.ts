@@ -60,7 +60,13 @@ export async function POST(req: NextRequest) {
         if (!response.ok) {
             const errorData = await response.text();
             console.error('Gemini API error:', errorData);
-            return NextResponse.json({ error: 'AI解析に失敗しました' }, { status: 502 });
+            // Return actual error detail for debugging
+            let detail = 'AI解析に失敗しました';
+            try {
+                const errJson = JSON.parse(errorData);
+                detail = errJson?.error?.message || detail;
+            } catch { /* ignore */ }
+            return NextResponse.json({ error: detail }, { status: 502 });
         }
 
         const data = await response.json();
