@@ -32,14 +32,19 @@ export async function POST(req: NextRequest) {
   "date": "YYYY-MM-DD形式の日付",
   "amount": 合計金額(数値),
   "memo": "店名や主な品目（短く）",
-  "type": "expense"
+  "type": "expense",
+  "items": [
+    { "name": "商品名1", "price": 100 },
+    { "name": "商品名2", "price": 200 }
+  ]
 }
 
 注意:
 - dateはレシートに記載の日付。見つからない場合は今日の日付(${new Date().toISOString().split('T')[0]})
 - amountは合計金額（税込）。数値のみ、カンマなし
-- memoは店名 + 主な品目を簡潔に
+- memoは店名 + 品目の概要などを簡潔に
 - typeは通常"expense"。入金・収入の場合のみ"income"
+- itemsはレシートに記載されている個別の品目と金額のリスト。見つからない場合は空配列 [] を返す。割引などはマイナスで記録。
 - レシートが読み取れない場合は {"error": "読み取れません"} を返す`
                             },
                             {
@@ -89,6 +94,7 @@ export async function POST(req: NextRequest) {
             amount: Number(result.amount) || 0,
             memo: result.memo || '',
             type: result.type || 'expense',
+            items: Array.isArray(result.items) ? result.items : [],
         });
 
     } catch (err) {

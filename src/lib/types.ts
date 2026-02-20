@@ -24,6 +24,11 @@ export interface PaymentMethodRecord {
     created_at: string;
 }
 
+export interface ReceiptItem {
+    name: string;
+    price: number;
+}
+
 export interface Transaction {
     id: string;
     user_id: string;
@@ -34,6 +39,7 @@ export interface Transaction {
     type: TransactionType;
     memo: string;
     recurring_id: string | null;
+    receipt_items?: ReceiptItem[] | null;
     created_at: string;
     // Joined
     category?: Category;

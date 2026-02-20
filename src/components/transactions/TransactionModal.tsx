@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { X, Camera, Loader2 } from 'lucide-react';
-import type { Category, Transaction, TransactionType, PaymentMethodRecord } from '@/lib/types';
+import type { Category, Transaction, TransactionType, PaymentMethodRecord, ReceiptItem } from '@/lib/types';
 import { formatDate } from '@/lib/utils';
 
 interface Props {
@@ -24,6 +24,7 @@ export default function TransactionModal({ categories, paymentMethods, transacti
     const [categoryId, setCategoryId] = useState(transaction?.category_id || '');
     const [paymentMethodId, setPaymentMethodId] = useState(transaction?.payment_method_id || '');
     const [memo, setMemo] = useState(transaction?.memo || '');
+    const [receiptItems, setReceiptItems] = useState<ReceiptItem[] | null>(transaction?.receipt_items || null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -62,6 +63,7 @@ export default function TransactionModal({ categories, paymentMethods, transacti
             if (data.amount) setAmount(String(data.amount));
             if (data.memo) setMemo(data.memo);
             if (data.type) setType(data.type);
+            if (data.items && data.items.length > 0) setReceiptItems(data.items);
             setScanMessage('✅ 読み取り完了！内容を確認してください');
         } catch {
             setError('レシート読み取りに失敗しました');
@@ -125,6 +127,7 @@ export default function TransactionModal({ categories, paymentMethods, transacti
             category_id: categoryId,
             payment_method_id: paymentMethodId || null,
             memo,
+            receipt_items: receiptItems,
             user_id: user.id,
         };
 
@@ -299,6 +302,25 @@ export default function TransactionModal({ categories, paymentMethods, transacti
                                 rows={2}
                             />
                         </div>
+
+                        {/* Receipt Items Display */}
+                        {receiptItems && receiptItems.length > 0 && (
+                            <div className="form-group" style={{ marginTop: '16px' }}>
+                                <label className="form-label">レシート内訳</label>
+                                <div style={{ background: 'var(--bg-input)', borderRadius: 'var(--radius-md)', padding: '12px' }}>
+                                    <table style={{ width: '100%', fontSize: '0.9rem', borderCollapse: 'collapse' }}>
+                                        <tbody>
+                                            {receiptItems.map((item, i) => (
+                                                <tr key={i} style={{ borderBottom: i < receiptItems.length - 1 ? '1px solid var(--border-color)' : 'none' }}>
+                                                    <td style={{ padding: '6px 0', color: 'var(--text-primary)' }}>{item.name}</td>
+                                                    <td style={{ padding: '6px 0', textAlign: 'right', fontWeight: 500 }}>¥{item.price.toLocaleString()}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="modal-footer">
