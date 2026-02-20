@@ -2,12 +2,13 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Plus, X, Pencil, Trash2, CreditCard, Upload, FileText, Repeat, BarChart3, ChevronRight, PiggyBank } from 'lucide-react';
+import { Plus, X, Pencil, Trash2, CreditCard, Upload, FileText, Repeat, BarChart3, ChevronRight, PiggyBank, LogOut } from 'lucide-react';
 import type { PaymentMethodRecord, PaymentMethodType } from '@/lib/types';
 import { CARD_TEMPLATES, PAYMENT_TYPE_LABELS } from '@/lib/types';
 import { parseCSVText, mapPayPayCSV, mapGenericCSV, formatCurrency } from '@/lib/utils';
 import type { CSVImportRow } from '@/lib/utils';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function SettingsPage() {
     const supabase = createClient();
@@ -343,156 +344,183 @@ export default function SettingsPage() {
                 </div>
             </div>
 
+            {/* Logout Button */}
+            <div className="card mt-6" style={{ padding: '0', overflow: 'hidden' }}>
+                <button
+                    onClick={async () => {
+                        if (confirm('ログアウトしますか？')) {
+                            await supabase.auth.signOut();
+                            window.location.href = '/login';
+                        }
+                    }}
+                    className="flex items-center justify-center gap-2 w-full"
+                    style={{
+                        padding: '16px',
+                        color: 'var(--expense-color)',
+                        fontWeight: 600,
+                        background: 'rgba(239, 68, 68, 0.1)',
+                        border: 'none',
+                        cursor: 'pointer',
+                    }}
+                >
+                    <LogOut size={20} />
+                    ログアウト
+                </button>
+            </div>
+
+
             {/* Add/Edit Form Modal */}
-            {showForm && (
-                <div className="modal-overlay" onClick={() => { setShowForm(false); resetForm(); }}>
-                    <div className="modal" onClick={(e) => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <h3>{editItem ? '支払方法を編集' : '支払方法を追加'}</h3>
-                            <button className="btn btn-ghost btn-icon" onClick={() => { setShowForm(false); resetForm(); }}>
-                                <X size={20} />
-                            </button>
-                        </div>
-                        <form onSubmit={handleSubmit}>
-                            <div className="modal-body">
-                                {formError && <div className="form-message error">{formError}</div>}
+            {
+                showForm && (
+                    <div className="modal-overlay" onClick={() => { setShowForm(false); resetForm(); }}>
+                        <div className="modal" onClick={(e) => e.stopPropagation()}>
+                            <div className="modal-header">
+                                <h3>{editItem ? '支払方法を編集' : '支払方法を追加'}</h3>
+                                <button className="btn btn-ghost btn-icon" onClick={() => { setShowForm(false); resetForm(); }}>
+                                    <X size={20} />
+                                </button>
+                            </div>
+                            <form onSubmit={handleSubmit}>
+                                <div className="modal-body">
+                                    {formError && <div className="form-message error">{formError}</div>}
 
-                                {/* Template Selection */}
-                                {!editItem && (
-                                    <div className="form-group">
-                                        <button
-                                            type="button"
-                                            className="btn btn-secondary"
-                                            style={{ width: '100%' }}
-                                            onClick={() => setShowTemplates(!showTemplates)}
-                                        >
-                                            <CreditCard size={16} />
-                                            カードテンプレートから選択
-                                        </button>
-                                        {showTemplates && (
-                                            <div className="flex flex-col gap-2 mt-3">
-                                                {CARD_TEMPLATES.map((t, i) => (
-                                                    <button
-                                                        key={i}
-                                                        type="button"
-                                                        className="card"
-                                                        style={{
-                                                            padding: '12px 16px',
-                                                            cursor: 'pointer',
-                                                            textAlign: 'left',
-                                                            border: '1px solid rgba(255,255,255,0.1)',
-                                                            background: 'rgba(255,255,255,0.03)',
-                                                        }}
-                                                        onClick={() => applyTemplate(t)}
-                                                    >
-                                                        <div style={{ fontWeight: 600 }}>{t.icon} {t.name}</div>
-                                                        <div className="text-sm text-muted">
-                                                            締め日: {t.closing_day === 0 ? '月末' : `${t.closing_day}日`}
-                                                            {' • '}引き落とし: 翌月{t.payment_day}日
-                                                        </div>
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
+                                    {/* Template Selection */}
+                                    {!editItem && (
+                                        <div className="form-group">
+                                            <button
+                                                type="button"
+                                                className="btn btn-secondary"
+                                                style={{ width: '100%' }}
+                                                onClick={() => setShowTemplates(!showTemplates)}
+                                            >
+                                                <CreditCard size={16} />
+                                                カードテンプレートから選択
+                                            </button>
+                                            {showTemplates && (
+                                                <div className="flex flex-col gap-2 mt-3">
+                                                    {CARD_TEMPLATES.map((t, i) => (
+                                                        <button
+                                                            key={i}
+                                                            type="button"
+                                                            className="card"
+                                                            style={{
+                                                                padding: '12px 16px',
+                                                                cursor: 'pointer',
+                                                                textAlign: 'left',
+                                                                border: '1px solid rgba(255,255,255,0.1)',
+                                                                background: 'rgba(255,255,255,0.03)',
+                                                            }}
+                                                            onClick={() => applyTemplate(t)}
+                                                        >
+                                                            <div style={{ fontWeight: 600 }}>{t.icon} {t.name}</div>
+                                                            <div className="text-sm text-muted">
+                                                                締め日: {t.closing_day === 0 ? '月末' : `${t.closing_day}日`}
+                                                                {' • '}引き落とし: 翌月{t.payment_day}日
+                                                            </div>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
 
-                                <div className="form-group">
-                                    <label className="form-label" htmlFor="pm-name">名前</label>
-                                    <input
-                                        id="pm-name"
-                                        type="text"
-                                        className="form-input"
-                                        placeholder="例: 楽天カード"
-                                        value={name}
-                                        onChange={(e) => setName(e.target.value)}
-                                        required
-                                    />
-                                </div>
-
-                                <div className="form-row">
                                     <div className="form-group">
-                                        <label className="form-label" htmlFor="pm-type">種類</label>
-                                        <select
-                                            id="pm-type"
-                                            className="form-select"
-                                            value={pmType}
-                                            onChange={(e) => {
-                                                const v = e.target.value as PaymentMethodType;
-                                                setPmType(v);
-                                                if (v === 'cash') { setIcon('💵'); setClosingDay(''); setPaymentDay(''); }
-                                                else if (v === 'credit') setIcon('💳');
-                                                else if (v === 'emoney') setIcon('📲');
-                                                else if (v === 'bank') setIcon('🏦');
-                                                else if (v === 'qr') setIcon('📱');
-                                            }}
-                                        >
-                                            {Object.entries(PAYMENT_TYPE_LABELS).map(([value, label]) => (
-                                                <option key={value} value={value}>{label}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className="form-group">
-                                        <label className="form-label" htmlFor="pm-icon">アイコン</label>
+                                        <label className="form-label" htmlFor="pm-name">名前</label>
                                         <input
-                                            id="pm-icon"
+                                            id="pm-name"
                                             type="text"
                                             className="form-input"
-                                            value={icon}
-                                            onChange={(e) => setIcon(e.target.value)}
-                                            style={{ maxWidth: '80px', textAlign: 'center', fontSize: '1.2rem' }}
+                                            placeholder="例: 楽天カード"
+                                            value={name}
+                                            onChange={(e) => setName(e.target.value)}
+                                            required
                                         />
                                     </div>
-                                </div>
 
-                                {pmType === 'credit' && (
                                     <div className="form-row">
                                         <div className="form-group">
-                                            <label className="form-label" htmlFor="pm-closing">締め日</label>
+                                            <label className="form-label" htmlFor="pm-type">種類</label>
                                             <select
-                                                id="pm-closing"
+                                                id="pm-type"
                                                 className="form-select"
-                                                value={closingDay}
-                                                onChange={(e) => setClosingDay(e.target.value)}
+                                                value={pmType}
+                                                onChange={(e) => {
+                                                    const v = e.target.value as PaymentMethodType;
+                                                    setPmType(v);
+                                                    if (v === 'cash') { setIcon('💵'); setClosingDay(''); setPaymentDay(''); }
+                                                    else if (v === 'credit') setIcon('💳');
+                                                    else if (v === 'emoney') setIcon('📲');
+                                                    else if (v === 'bank') setIcon('🏦');
+                                                    else if (v === 'qr') setIcon('📱');
+                                                }}
                                             >
-                                                <option value="">未設定</option>
-                                                <option value="0">月末</option>
-                                                {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
-                                                    <option key={d} value={d}>{d}日</option>
+                                                {Object.entries(PAYMENT_TYPE_LABELS).map(([value, label]) => (
+                                                    <option key={value} value={value}>{label}</option>
                                                 ))}
                                             </select>
                                         </div>
                                         <div className="form-group">
-                                            <label className="form-label" htmlFor="pm-payment">引き落とし日</label>
-                                            <select
-                                                id="pm-payment"
-                                                className="form-select"
-                                                value={paymentDay}
-                                                onChange={(e) => setPaymentDay(e.target.value)}
-                                            >
-                                                <option value="">未設定</option>
-                                                {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
-                                                    <option key={d} value={d}>翌月{d}日</option>
-                                                ))}
-                                            </select>
+                                            <label className="form-label" htmlFor="pm-icon">アイコン</label>
+                                            <input
+                                                id="pm-icon"
+                                                type="text"
+                                                className="form-input"
+                                                value={icon}
+                                                onChange={(e) => setIcon(e.target.value)}
+                                                style={{ maxWidth: '80px', textAlign: 'center', fontSize: '1.2rem' }}
+                                            />
                                         </div>
                                     </div>
-                                )}
-                            </div>
 
-                            <div className="modal-footer">
-                                <div style={{ flex: 1 }} />
-                                <button type="button" className="btn btn-secondary" onClick={() => { setShowForm(false); resetForm(); }}>
-                                    キャンセル
-                                </button>
-                                <button type="submit" className="btn btn-primary">
-                                    {editItem ? '更新' : '追加'}
-                                </button>
-                            </div>
-                        </form>
+                                    {pmType === 'credit' && (
+                                        <div className="form-row">
+                                            <div className="form-group">
+                                                <label className="form-label" htmlFor="pm-closing">締め日</label>
+                                                <select
+                                                    id="pm-closing"
+                                                    className="form-select"
+                                                    value={closingDay}
+                                                    onChange={(e) => setClosingDay(e.target.value)}
+                                                >
+                                                    <option value="">未設定</option>
+                                                    <option value="0">月末</option>
+                                                    {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+                                                        <option key={d} value={d}>{d}日</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <div className="form-group">
+                                                <label className="form-label" htmlFor="pm-payment">引き落とし日</label>
+                                                <select
+                                                    id="pm-payment"
+                                                    className="form-select"
+                                                    value={paymentDay}
+                                                    onChange={(e) => setPaymentDay(e.target.value)}
+                                                >
+                                                    <option value="">未設定</option>
+                                                    {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+                                                        <option key={d} value={d}>翌月{d}日</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="modal-footer">
+                                    <div style={{ flex: 1 }} />
+                                    <button type="button" className="btn btn-secondary" onClick={() => { setShowForm(false); resetForm(); }}>
+                                        キャンセル
+                                    </button>
+                                    <button type="submit" className="btn btn-primary">
+                                        {editItem ? '更新' : '追加'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
         </>
     );
 }
