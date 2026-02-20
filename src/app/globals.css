@@ -1079,3 +1079,14 @@ a:hover {
 @media (max-width: 640px) {
   .grid-2 { grid-template-columns: 1fr; }
 }
+
+/* Mobile-only utility */
+.mobile-only {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-only {
+    display: block;
+  }
+}

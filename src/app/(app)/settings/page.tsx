@@ -387,30 +387,33 @@ export default function SettingsPage() {
             <div className="card mt-6" style={{ padding: '20px' }}>
                 <h3 style={{ marginBottom: '12px' }}>その他の機能</h3>
                 <div className="flex flex-col gap-2">
-                    <Link href="/recurring" className="card" style={{ padding: '14px 18px', textDecoration: 'none', color: 'inherit', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.03)' }}>
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <Repeat size={20} style={{ color: 'var(--primary-color)' }} />
-                                <div>
-                                    <div style={{ fontWeight: 600 }}>繰り返し・固定費</div>
-                                    <div className="text-sm text-muted">固定費の登録・年間サマリー</div>
+                    {/* モバイルのみ表示（PC版はサイドバーにあるため） */}
+                    <div className="mobile-only">
+                        <Link href="/recurring" className="card" style={{ padding: '14px 18px', textDecoration: 'none', color: 'inherit', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.03)', display: 'block', marginBottom: '8px' }}>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <Repeat size={20} style={{ color: 'var(--primary-color)' }} />
+                                    <div>
+                                        <div style={{ fontWeight: 600 }}>繰り返し・固定費</div>
+                                        <div className="text-sm text-muted">固定費の登録・年間サマリー</div>
+                                    </div>
                                 </div>
+                                <ChevronRight size={18} className="text-muted" />
                             </div>
-                            <ChevronRight size={18} className="text-muted" />
-                        </div>
-                    </Link>
-                    <Link href="/budgets" className="card" style={{ padding: '14px 18px', textDecoration: 'none', color: 'inherit', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.03)' }}>
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <PiggyBank size={20} style={{ color: 'var(--primary-color)' }} />
-                                <div>
-                                    <div style={{ fontWeight: 600 }}>予算</div>
-                                    <div className="text-sm text-muted">毎月の予算設定・予実管理</div>
+                        </Link>
+                        <Link href="/budgets" className="card" style={{ padding: '14px 18px', textDecoration: 'none', color: 'inherit', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.03)', display: 'block', marginBottom: '8px' }}>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <PiggyBank size={20} style={{ color: 'var(--primary-color)' }} />
+                                    <div>
+                                        <div style={{ fontWeight: 600 }}>予算</div>
+                                        <div className="text-sm text-muted">毎月の予算設定・予実管理</div>
+                                    </div>
                                 </div>
+                                <ChevronRight size={18} className="text-muted" />
                             </div>
-                            <ChevronRight size={18} className="text-muted" />
-                        </div>
-                    </Link>
+                        </Link>
+                    </div>
                     <Link href="/guide" className="card" style={{ padding: '14px 18px', textDecoration: 'none', color: 'inherit', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.03)' }}>
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
