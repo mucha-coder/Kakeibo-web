@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { X } from 'lucide-react';
+import { X, Camera, Loader2 } from 'lucide-react';
 import type { Category, Transaction, TransactionType, PaymentMethodRecord } from '@/lib/types';
 import { formatDate } from '@/lib/utils';
 
@@ -27,8 +27,75 @@ export default function TransactionModal({ categories, paymentMethods, transacti
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
+    // Receipt scanning state
+    const [scanning, setScanning] = useState(false);
+    const [scanMessage, setScanMessage] = useState('');
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
     const filteredCategories = categories.filter((c) => c.type === type);
     const activePaymentMethods = paymentMethods.filter((pm) => pm.is_active);
+
+    async function handleReceiptScan(file: File) {
+        setScanning(true);
+        setScanMessage('レシートを読み取り中...');
+        setError('');
+
+        try {
+            // Resize image to reduce payload
+            const base64 = await resizeAndConvert(file, 1024);
+
+            const res = await fetch('/api/receipt', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: base64 }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok || data.error) {
+                setError(data.error || 'レシートの読み取りに失敗しました');
+                return;
+            }
+
+            // Fill form with scanned data
+            if (data.date) setDate(data.date);
+            if (data.amount) setAmount(String(data.amount));
+            if (data.memo) setMemo(data.memo);
+            if (data.type) setType(data.type);
+            setScanMessage('✅ 読み取り完了！内容を確認してください');
+        } catch {
+            setError('レシート読み取りに失敗しました');
+        } finally {
+            setScanning(false);
+        }
+    }
+
+    function resizeAndConvert(file: File, maxSize: number): Promise<string> {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let { width, height } = img;
+                    if (width > maxSize || height > maxSize) {
+                        const ratio = Math.min(maxSize / width, maxSize / height);
+                        width = Math.round(width * ratio);
+                        height = Math.round(height * ratio);
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d')!;
+                    ctx.drawImage(img, 0, 0, width, height);
+                    resolve(canvas.toDataURL('image/jpeg', 0.8));
+                };
+                img.onerror = reject;
+                img.src = e.target?.result as string;
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -96,6 +163,50 @@ export default function TransactionModal({ categories, paymentMethods, transacti
                 <form onSubmit={handleSubmit}>
                     <div className="modal-body">
                         {error && <div className="form-message error">{error}</div>}
+                        {scanMessage && !error && (
+                            <div className="form-message success">{scanMessage}</div>
+                        )}
+
+                        {/* Receipt Scan Button */}
+                        {!isEdit && (
+                            <div className="form-group">
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    capture="environment"
+                                    style={{ display: 'none' }}
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) handleReceiptScan(file);
+                                        e.target.value = '';
+                                    }}
+                                />
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary w-full"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    disabled={scanning}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '8px',
+                                        padding: '12px',
+                                        background: scanning ? 'var(--accent-primary-glow)' : 'var(--bg-card-hover)',
+                                        border: '1px dashed var(--accent-primary)',
+                                        color: 'var(--accent-primary)',
+                                        borderRadius: 'var(--radius-md)',
+                                    }}
+                                >
+                                    {scanning ? (
+                                        <><Loader2 size={18} className="spin" /> 読み取り中...</>
+                                    ) : (
+                                        <><Camera size={18} /> 📷 レシートを読み取る</>
+                                    )}
+                                </button>
+                            </div>
+                        )}
 
                         {/* Type Toggle */}
                         <div className="form-group">
