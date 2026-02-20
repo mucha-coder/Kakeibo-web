@@ -55,7 +55,7 @@ export default function GuidePage() {
     return (
         <>
             <div className="mobile-header">
-                <h1>💰 家計簿</h1>
+                <h1><img src="/icons/icon-192.png" alt="" style={{ width: '22px', height: '22px', borderRadius: '4px', verticalAlign: 'middle', marginRight: '6px' }} />最強の家計簿</h1>
             </div>
 
             <div className="page-header">
@@ -74,10 +74,10 @@ export default function GuidePage() {
                 <div style={{ textAlign: 'center', marginBottom: '20px' }}>
                     <div style={{ fontSize: '3rem', marginBottom: '12px' }}>📖</div>
                     <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '8px' }}>
-                        ようこそ！家計簿アプリへ
+                        ようこそ！最強の家計簿へ
                     </h3>
                     <p className="text-muted" style={{ fontSize: '0.9rem', lineHeight: 1.6 }}>
-                        シンプルで使いやすい家計簿アプリです。<br />
+                        最強の家計簿アプリです。<br />
                         以下のステップに沿って、簡単に家計管理を始めましょう。
                     </p>
                 </div>

@@ -1,7 +1,7 @@
 {
-    "name": "家計簿 - Kakeibo",
-    "short_name": "家計簿",
-    "description": "シンプルで使いやすい家計簿アプリ",
+    "name": "最強の家計簿 - Kakeibo",
+    "short_name": "最強の家計簿",
+    "description": "最強の家計簿アプリ",
     "start_url": "/dashboard",
     "display": "standalone",
     "background_color": "#0a0a0f",

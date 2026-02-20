@@ -2,8 +2,8 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-    title: '家計簿 - Kakeibo',
-    description: 'シンプルで使いやすい家計簿アプリ',
+    title: '最強の家計簿 - Kakeibo',
+    description: '最強の家計簿アプリ',
     manifest: '/manifest.json',
 };
 
@@ -24,7 +24,7 @@ export default function RootLayout({
             <head>
                 <meta name="apple-mobile-web-app-capable" content="yes" />
                 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-                <meta name="apple-mobile-web-app-title" content="家計簿" />
+                <meta name="apple-mobile-web-app-title" content="最強の家計簿" />
             </head>
             <body>
                 {children}

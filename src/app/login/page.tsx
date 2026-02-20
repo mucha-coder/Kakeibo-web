@@ -80,8 +80,8 @@ export default function LoginPage() {
     return (
         <div className="login-container">
             <div className="login-card">
-                <div className="login-emoji">💰</div>
-                <h1>家計簿</h1>
+                <div className="login-emoji"><img src="/icons/icon-192.png" alt="logo" style={{ width: '64px', height: '64px', borderRadius: '12px' }} /></div>
+                <h1>最強の家計簿</h1>
                 <p className="login-subtitle">
                     {mode === 'login' && 'アカウントにログイン'}
                     {mode === 'signup' && '新しいアカウントを作成'}

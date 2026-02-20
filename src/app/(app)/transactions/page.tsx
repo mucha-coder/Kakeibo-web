@@ -91,7 +91,7 @@ export default function TransactionsPage() {
     return (
         <>
             <div className="mobile-header">
-                <h1>💰 家計簿</h1>
+                <h1><img src="/icons/icon-192.png" alt="" style={{ width: '22px', height: '22px', borderRadius: '4px', verticalAlign: 'middle', marginRight: '6px' }} />最強の家計簿</h1>
             </div>
 
             <div className="page-header flex items-center justify-between">

@@ -38,8 +38,8 @@ export default function Sidebar() {
     return (
         <aside className="sidebar">
             <div className="sidebar-logo">
-                <span className="logo-icon">💰</span>
-                <h1>家計簿</h1>
+                <img src="/icons/icon-192.png" alt="logo" className="logo-icon" style={{ width: '28px', height: '28px', borderRadius: '6px' }} />
+                <h1>最強の家計簿</h1>
             </div>
             <nav className="sidebar-nav">
                 {navItems.map((item) => (
