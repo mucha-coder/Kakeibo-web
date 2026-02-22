@@ -208,6 +208,21 @@ export default function TransactionModal({ categories, paymentMethods, transacti
                                         <><Camera size={18} /> 📷 レシートを読み取る</>
                                     )}
                                 </button>
+                                <div style={{
+                                    fontSize: '0.72rem',
+                                    color: 'var(--text-muted)',
+                                    marginTop: '6px',
+                                    lineHeight: 1.5,
+                                    display: 'flex',
+                                    flexWrap: 'wrap',
+                                    gap: '4px 10px',
+                                }}>
+                                    <span>💡 コツ:</span>
+                                    <span>📄 無地の背景で撮影</span>
+                                    <span>☀️ 明るい場所で</span>
+                                    <span>📐 真上から撮影</span>
+                                    <span>🔍 ピントを合わせて</span>
+                                </div>
                             </div>
                         )}
 
