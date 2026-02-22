@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { X, Camera, Loader2 } from 'lucide-react';
+import { X, Camera, Loader2, HelpCircle } from 'lucide-react';
 import type { Category, Transaction, TransactionType, PaymentMethodRecord, ReceiptItem } from '@/lib/types';
 import { formatDate } from '@/lib/utils';
 
@@ -31,6 +31,7 @@ export default function TransactionModal({ categories, paymentMethods, transacti
     // Receipt scanning state
     const [scanning, setScanning] = useState(false);
     const [scanMessage, setScanMessage] = useState('');
+    const [showScanHelp, setShowScanHelp] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const filteredCategories = categories.filter((c) => c.type === type);
@@ -185,44 +186,68 @@ export default function TransactionModal({ categories, paymentMethods, transacti
                                         e.target.value = '';
                                     }}
                                 />
-                                <button
-                                    type="button"
-                                    className="btn btn-secondary w-full"
-                                    onClick={() => fileInputRef.current?.click()}
-                                    disabled={scanning}
-                                    style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        gap: '8px',
-                                        padding: '12px',
-                                        background: scanning ? 'var(--accent-primary-glow)' : 'var(--bg-card-hover)',
-                                        border: '1px dashed var(--accent-primary)',
-                                        color: 'var(--accent-primary)',
-                                        borderRadius: 'var(--radius-md)',
-                                    }}
-                                >
-                                    {scanning ? (
-                                        <><Loader2 size={18} className="spin" /> 読み取り中...</>
-                                    ) : (
-                                        <><Camera size={18} /> 📷 レシートを読み取る</>
-                                    )}
-                                </button>
-                                <div style={{
-                                    fontSize: '0.72rem',
-                                    color: 'var(--text-muted)',
-                                    marginTop: '6px',
-                                    lineHeight: 1.5,
-                                    display: 'flex',
-                                    flexWrap: 'wrap',
-                                    gap: '4px 10px',
-                                }}>
-                                    <span>💡 コツ:</span>
-                                    <span>📄 無地の背景で撮影</span>
-                                    <span>☀️ 明るい場所で</span>
-                                    <span>📐 真上から撮影</span>
-                                    <span>🔍 ピントを合わせて</span>
+                                <div style={{ display: 'flex', gap: '6px' }}>
+                                    <button
+                                        type="button"
+                                        className="btn btn-secondary"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        disabled={scanning}
+                                        style={{
+                                            flex: 1,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '8px',
+                                            padding: '12px',
+                                            background: scanning ? 'var(--accent-primary-glow)' : 'var(--bg-card-hover)',
+                                            border: '1px dashed var(--accent-primary)',
+                                            color: 'var(--accent-primary)',
+                                            borderRadius: 'var(--radius-md)',
+                                        }}
+                                    >
+                                        {scanning ? (
+                                            <><Loader2 size={18} className="spin" /> 読み取り中...</>
+                                        ) : (
+                                            <><Camera size={18} /> 📷 レシートを読み取る</>
+                                        )}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowScanHelp(!showScanHelp)}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            width: '40px',
+                                            background: showScanHelp ? 'var(--accent-primary)' : 'var(--bg-card-hover)',
+                                            color: showScanHelp ? '#fff' : 'var(--text-muted)',
+                                            border: '1px solid var(--border-color)',
+                                            borderRadius: 'var(--radius-md)',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s',
+                                        }}
+                                        title="撮影のコツ"
+                                    >
+                                        <HelpCircle size={16} />
+                                    </button>
                                 </div>
+                                {showScanHelp && (
+                                    <div style={{
+                                        fontSize: '0.78rem',
+                                        color: 'var(--text-secondary)',
+                                        marginTop: '8px',
+                                        padding: '10px 12px',
+                                        background: 'var(--bg-input)',
+                                        borderRadius: 'var(--radius-md)',
+                                        lineHeight: 1.7,
+                                    }}>
+                                        <div style={{ fontWeight: 600, marginBottom: '4px' }}>💡 きれいに読み取るコツ</div>
+                                        <div>📄 無地の背景の上に置く</div>
+                                        <div>☀️ 明るい場所で撮影する</div>
+                                        <div>📐 レシートの真上から撮影</div>
+                                        <div>🔍 ピントを合わせてから撮影</div>
+                                    </div>
+                                )}
                             </div>
                         )}
 
