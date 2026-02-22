@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import GoogleAnalytics from '@/components/GoogleAnalytics';
 
 export const metadata: Metadata = {
     title: '最強の家計簿 - Kakeibo',
@@ -39,6 +40,9 @@ export default function RootLayout({
                 />
             </head>
             <body>
+                {process.env.NEXT_PUBLIC_GA_ID && (
+                    <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+                )}
                 {children}
                 <script
                     dangerouslySetInnerHTML={{
