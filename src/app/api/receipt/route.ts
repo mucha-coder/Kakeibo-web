@@ -1,9 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { createClient } from '@/lib/supabase/server';
+
+// 1ユーザーあたり: 1分間に10回まで
+const RATE_LIMIT = 10;
+const RATE_WINDOW_MS = 60_000;
 
 export async function POST(req: NextRequest) {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
         return NextResponse.json({ error: 'GEMINI_API_KEY が設定されていません' }, { status: 500 });
+    }
+
+    // 認証チェック（セキュリティ強化: ミドルウェアに加えてAPI内でも二重チェック）
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+        return NextResponse.json({ error: 'ログインが必要です' }, { status: 401 });
+    }
+
+    // レート制限チェック
+    const { allowed, remaining, retryAfterMs } = checkRateLimit(
+        `receipt:${user.id}`,
+        RATE_LIMIT,
+        RATE_WINDOW_MS,
+    );
+    if (!allowed) {
+        const retryAfterSec = Math.ceil(retryAfterMs / 1000);
+        return NextResponse.json(
+            { error: `レシート読み取りの利用回数上限です。${retryAfterSec}秒後に再試行してください。` },
+            { status: 429, headers: { 'Retry-After': String(retryAfterSec) } },
+        );
     }
 
     try {
