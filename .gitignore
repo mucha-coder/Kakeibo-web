@@ -21,6 +21,10 @@
 # misc
 .DS_Store
 *.pem
+build.log
+build_output.txt
+gitlog.txt
+.env
 
 # debug
 npm-debug.log*
